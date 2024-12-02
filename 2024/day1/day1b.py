@@ -3,7 +3,7 @@ left = []
 right = []
 
 
-with open('day1data') as f:
+with open('2024/day1/day_1_input.txt') as f:
     input = f.read().strip().split()
     for i, data in enumerate(input):
         # print(f"i: {i}, data: {data}")
