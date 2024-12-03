@@ -3,8 +3,9 @@ with open('2024/day3/day_3_input.txt', 'r') as file: # 2024/day3/day_3_input.txt
 
 import re
 
-matches = list(re.findall(r"mul\((\d+),(\d+)\)|(do\(\))|(don't\(\))", str(data)))
+matches = list(re.findall(r"mul\((\d+),(\d+)\)|(do\(\))|(don't\(\))", data))
 
+print(matches)
 do = True
 sum = 0
 for i, match in enumerate(matches):
@@ -16,3 +17,5 @@ for i, match in enumerate(matches):
     elif match[3]:  # Group for don't()
         do = False
 print(sum)     
+
+('', '', 'do()', '')
