@@ -5,7 +5,6 @@ import re
 
 matches = list(re.findall(r"mul\((\d+),(\d+)\)|(do\(\))|(don't\(\))", data))
 
-print(matches)
 do = True
 sum = 0
 for i, match in enumerate(matches):
@@ -17,5 +16,3 @@ for i, match in enumerate(matches):
     elif match[3]:  # Group for don't()
         do = False
 print(sum)     
-
-('', '', 'do()', '')
