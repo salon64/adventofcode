@@ -19,10 +19,7 @@ for first, second in rules:
         rules_d[first] = []
     rules_d[first].append(second)
 
-
-
 updates = [[int(item) for item in update.split(',')] for update in updates]
-print(rules_d)
 
 def lawAbidingNumber(num1, num2):
 	return num1 in rules_d and num2 in rules_d[num1]
@@ -37,6 +34,26 @@ def sortingTheNumbersInAWayThatWillNotCauseMeShame(update):
 				break
 		sortedList.insert(pos, item)
 	return sortedList
+
+# wow
+result = 0
+for i, update in enumerate(updates):
+	okay = True
+	for j, item in enumerate(update):
+		if item in rules_d:
+			for val in rules_d[item]:
+				while val in update[:j]:
+					okay = False
+					break
+
+	if not okay:
+		update = sortingTheNumbersInAWayThatWillNotCauseMeShame(update)
+		result += update[int(len(update)/2)]
+
+
+print(result)
+# 4971
+
 
 
 # def fix(update):
@@ -55,25 +72,3 @@ def sortingTheNumbersInAWayThatWillNotCauseMeShame(update):
 	
 # 	return(update)
 		
-
-result = 0
-for i, update in enumerate(updates):
-	okay = True
-	for j, item in enumerate(update):
-		if item in rules_d:
-			for val in rules_d[item]:
-				while val in update[:j]:
-					okay = False
-					break
-
-
-
-	if not okay:
-		update = sortingTheNumbersInAWayThatWillNotCauseMeShame(update)
-		result += update[int(len(update)/2)]
-
-
-print(result)
-# 4971
-
-
