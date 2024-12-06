@@ -209,4 +209,5 @@ for i, place in enumerate(placesVisited):
 
 print("done for real")
 print(obstructions)
-# 1935
+# 5: 1928
+# 4: 1935

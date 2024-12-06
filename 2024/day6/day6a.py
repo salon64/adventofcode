@@ -1,4 +1,4 @@
-with open('2024/day6/day_6_input.txt', 'r') as file: # 2024/day6/day_6_input.txt
+with open('2024/day6/test', 'r') as file: # 2024/day6/day_6_input.txt
 	data_s = file.read().splitlines()
 
 data_s = ['O' + line + 'O' for line in data_s]
