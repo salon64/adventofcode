@@ -7,6 +7,7 @@ for i, item in enumerate(data):
 	if item == '':
 		rules = data[:i]
 		updates = data[i+1:]
+		break
 
 rules = [instr.split('|') for instr in rules]
 for i, rule in enumerate(rules):
