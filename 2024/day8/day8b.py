@@ -1,13 +1,11 @@
 with open('2024/day8/day_8_input.txt', 'r') as file: # 2024/day8/day_8_input.txt
 	data = file.read().splitlines()
-import math
 import time
 start = time.time()
 
 lines = []
 for line in data:
 	lines.append(list(line))
-	
 locations = []
 for y, line in enumerate(lines):
 	for x, char in enumerate(line):
@@ -40,7 +38,6 @@ for i, locA in enumerate(locations):
 					validNoise.add((y+yT, x+xT))
 				if neg:
 					validNoise.add((y-yT, x-xT))
-
 				mul+=1
 
 
@@ -48,4 +45,4 @@ print(len(validNoise))
 
 end = time.time()
 print("The time of execution of above program is :",
-      (end-start) * 10**3, "ms")
+      (end-start) * 1000, "ms")
