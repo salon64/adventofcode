@@ -3,12 +3,13 @@ import os
 import os.path
 import datetime
 from dotenv import load_dotenv
+
 load_dotenv()
 
 
 current_day = str(datetime.date.today().day)
 current_year = str(datetime.date.today().year)
-aoc_url = fr"https://adventofcode.com/{current_year}/day/{current_day}/input"
+aoc_url = rf"https://adventofcode.com/{current_year}/day/{current_day}/input"
 
 auth = {"session": os.environ.get("AOC_SESSION_KEY")}
 print(auth)
@@ -28,12 +29,24 @@ if not os.path.exists(folder_path):
 with open(f"{folder_path}/{input_path}", "w") as file:
     file.write(todays_input)
 
+file_template = f"""import time
+
+
+start_time = time.time()
+
+with open('{folder_path}/{input_path}', 'r') as file:
+    data = file.read().strip()
+
+end_time = time.time()
+print(f'Time took: {"{round((end_time - start_time) * 1000, 2)}"}ms')
+"""
+
 if not os.path.exists(f"{folder_path}/{problem_path}a.py"):
     with open(f"{folder_path}/{problem_path}a.py", "w") as file:
-        file.write(f"with open('{folder_path}/{input_path}', 'r') as file:\n\tdata = file.read()")
+        file.write(file_template)
 
 if not os.path.exists(f"{folder_path}/{problem_path}b.py"):
     with open(f"{folder_path}/{problem_path}b.py", "w") as file:
-        file.write(f"with open('{folder_path}/{input_path}', 'r') as file:\n\tdata = file.read()")
+        file.write(file_template)
 
 print("Success")
