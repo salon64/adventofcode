@@ -1,6 +1,5 @@
 with open('2024/day8/day_8_input.txt', 'r') as file: # 2024/day8/day_8_input.txt
 	data = file.read().splitlines()
-import math
 
 
 lines = []
@@ -38,18 +37,6 @@ for i, locA in enumerate(locations):
 					elif x - xDist == locA[2] and y - yDist == locA[1]:
 						if (y, x) not in [(locA[1], locA[2]), (locB[1], locB[2])]:
 							validNoise.add((y, x))
-					
-
-
-					# d1_squared = (x - locA[2])**2 + (y - locA[1])**2
-					# d2_squared = (x - locB[2])**2 + (y - locB[1])**2
-
-					# if (
-					# 	# d1_squared > 0 and d2_squared > 0 and  # Non-zero distances
-					# 	# d1_squared < 2500 and d2_squared < 2500 and  # Less than distance 50
-					# 	(d2_squared == 4 * d1_squared or d1_squared == 4 * d2_squared)
-					# ):
-					# 	validNoise.add((y, x))
 
 for y, x in validNoise:
     if lines[y][x] == '.':  
