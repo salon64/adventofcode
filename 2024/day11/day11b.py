@@ -34,6 +34,7 @@ def blink(char, blinks_left):
         inner_res = blink(mod_char, blinks_left-1)
         values[char][blinks_left] = inner_res
         return inner_res
+    
 
 res = 0
 dept = 500
