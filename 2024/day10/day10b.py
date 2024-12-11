@@ -18,7 +18,7 @@ def hike(y, x):
     up = y != 0                  and lines[y-1][x] == val + 1#  and (y-1, x) not in visited_path
     down = y != len(lines)-1     and lines[y+1][x] == val + 1#  and (y+1, x) not in visited_path
     right = x != len(lines[0])-1 and lines[y][x+1] == val + 1#  and (y, x+1) not in visited_path
-    left = x != 0                and lines[y][x+-1] == val + 1# and (y, x-1) not in visited_path
+    left = x != 0                and lines[y][x-1] == val + 1#  and (y, x-1) not in visited_path
     up_res = 0
     donw_res = 0
     right_res = 0
@@ -50,7 +50,7 @@ for y, line in enumerate(lines):
             total_res += s
             count += 1
 
-            print(f"{count}: {s}")
+            # print(f"{count}: {s}")
 
 print(total_res)
 end_time = time.time()

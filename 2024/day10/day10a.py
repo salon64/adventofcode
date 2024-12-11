@@ -50,7 +50,7 @@ for y, line in enumerate(lines):
             total_res += s
             count += 1
 
-            print(f"{count}: {s}")
+            # print(f"{count}: {s}")
 
 print(total_res)
 end_time = time.time()
