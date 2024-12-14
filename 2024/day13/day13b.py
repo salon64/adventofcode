@@ -5,7 +5,6 @@ start_time = time.time()
 with open('2024/day13/day_13_input.txt', 'r') as file: # day_13_input.txt
     data = file.read().splitlines()
 
-T = list(range(100))
 A = []
 B = []
 P = []
