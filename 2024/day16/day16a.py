@@ -21,13 +21,13 @@ def is_valid(y, x, new_dist):
 q = queue()
 q.append((pos[0], pos[1], 1, 0))  # (y, x, direction, distance)
 distances[(pos[0], pos[1])] = 0
-ends = []
-
+shortest_path_length = float('inf')
 while (len(q) > 0):
     y, x, dir, dist = q.popleft()
     distances[(y, x)] = dist
     if data[y][x] == 'E':
-        ends.append(dist)
+        shortest_path_length = min(shortest_path_length, dist)
+        continue
     
     for dy, dx, new_dir in [(-1, 0, 0), (1, 0, 2), (0, 1, 1), (0, -1, 3)]:  # (dy, dx, direction)
         ny, nx = y + dy, x + dx
@@ -36,8 +36,7 @@ while (len(q) > 0):
         if is_valid(ny, nx, new_dist):
             q.append((ny, nx, new_dir, new_dist))
 
-ends.sort()
-print(ends[0])
-    
+
+print(f"shortest path: {shortest_path_length}")
 end_time = time.time()
 print(f'Time took: {round((end_time - start_time) * 1000, 2)}ms')

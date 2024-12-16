@@ -1,7 +1,7 @@
 import time
 from collections import defaultdict, deque as queue
 start_time = time.time()
-with open('2024/day16/day_16_input.txt', 'r') as file: # day_16_input.txt
+with open('2024/day16/test', 'r') as file: # day_16_input.txt
     data = file.read().strip().splitlines()
 
 pos = (0, 0)
@@ -17,14 +17,12 @@ for y, line in enumerate(data):
         elif char == 'E':
             end_pos = (y, x)
 
-
-
 def is_valid(y, x, new_dist, oy, ox):
     if (y, x) in distances:
         existing_dist = distances[(y, x)]
-        # Check if the difference is exactly 1000
         if abs(existing_dist - new_dist) == 1000:
             source_nodes[(y, x)].append((oy, ox))
+            return False
         elif existing_dist < new_dist:
             return False
         elif existing_dist > new_dist:
@@ -53,50 +51,27 @@ while (len(q) > 0):
             distances[(ny, nx, dir)] = new_dist
             q.append((ny, nx, new_dir, new_dist))
 
-# check entrances to end_node
-# print(end_pos)
-# print(distances[(end_pos[0], end_pos[1]-1)])
-# print(distances[(end_pos[0]+1, end_pos[1])])
-# print(source_nodes[end_pos])
 
-# print("here?")
+res = set()
+res.add(end_pos)
+q2 = queue()
+q2.append(end_pos)
+while q2:
+    origin = q2.popleft()
+    if origin == pos:
+        res.add(origin)  # Always add the start position once it's reached
+    for source in source_nodes[origin]:
+        if source not in res:  # Avoid adding already processed nodes
+            res.add(source)
+            q2.append(source)
 
-# res = set()
-# res.add(end_pos)
-# q2 = queue()
-# q2.append(end_pos)
-# while q2:
-#     origin = q2.popleft()
-#     if origin == pos:
-#         res.add(origin)  # Always add the start position once it's reached
-#     for source in source_nodes[origin]:
-#         if source not in res:  # Avoid adding already processed nodes
-#             res.add(source)
-#             q2.append(source)
+for y, x in res:
+    data[y][x] = 'O'
+for line in data:
+    print("".join(line))
 
-
-# for (y, x) in res:
-#     data[y][x] = 'O'   
-# for line in data:
-#     print("".join(line))        
-
+    
 print(f"shortest path: {shortest_path_length}")
-# print(len(res))
+print(len(res))
 end_time = time.time()
 print(f'Time took: {round((end_time - start_time) * 1000, 2)}ms')
-
-
-
-# def is_valid(y, x, new_dist, oy, ox):
-#     if (y, x) in distances:
-#         if distances[(y, x)] < new_dist:
-#             return False
-#         elif distances[(y, x)] > new_dist:
-#             source_nodes[(y, x)] = [(oy, ox)]
-#         elif distances[(y, x)] == new_dist:
-#             source_nodes[(y, x)].append((oy, ox)) 
-#             return False
-#     else:
-#         distances[(y, x)] = new_dist 
-#         source_nodes[(y, x)] = [(oy, ox)] 
-#     return data[y][x] != '#'  # Not a wall
