@@ -23,6 +23,8 @@ q.append((pos[0], pos[1], 1, 0))  # (y, x, direction, distance)
 distances[(pos[0], pos[1])] = 0
 shortest_path_length = float('inf')
 while (len(q) > 0):
+    if len(q) % 1000 == 0:
+        print(len(q))
     y, x, dir, dist = q.popleft()
     distances[(y, x)] = dist
     if data[y][x] == 'E':

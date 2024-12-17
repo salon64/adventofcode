@@ -32,12 +32,14 @@ def is_valid(y, x, new_dist, oy, ox):
         source_nodes[(y, x)] = [(oy, ox)]
     return data[y][x] != '#'  # Not a wall
 
-q = queue()
+q = []
 q.append((pos[0], pos[1], 1, 0))  # (y, x, direction, distance)
 distances[(pos[0], pos[1])] = 0
 shortest_path_length = float('inf')
 while (len(q) > 0):
-    y, x, dir, dist = q.popleft()
+    # if len(q) % 10000 == 0:
+    #     print(len(q))
+    y, x, dir, dist = q.pop(0)
     if data[y][x] == 'E':
         shortest_path_length = min(shortest_path_length, dist)
         continue
@@ -54,10 +56,10 @@ while (len(q) > 0):
 
 res = set()
 res.add(end_pos)
-q2 = queue()
+q2 = []
 q2.append(end_pos)
 while q2:
-    origin = q2.popleft()
+    origin = q2.pop(0)
     if origin == pos:
         res.add(origin)  # Always add the start position once it's reached
     for source in source_nodes[origin]:
