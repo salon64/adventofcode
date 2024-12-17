@@ -1,77 +1,123 @@
+import sys
 import time
 from collections import defaultdict, deque as queue
+sys.setrecursionlimit(100000) 
 start_time = time.time()
 with open('2024/day16/test', 'r') as file: # day_16_input.txt
     data = file.read().strip().splitlines()
 
-pos = (0, 0)
-end_pos = (0, 0)
-distances = {}
-source_nodes = defaultdict(list)
-
+start_pos = (0, 0)
 data = [list(line) for line in data]
 for y, line in enumerate(data):
     for x, char in enumerate(line):
         if char == 'S':  # Start position
-            pos = (y, x)
-        elif char == 'E':
-            end_pos = (y, x)
+            start_pos = (y, x)
 
-def is_valid(y, x, new_dist, oy, ox):
-    if (y, x) in distances:
-        existing_dist = distances[(y, x)]
-        if abs(existing_dist - new_dist) == 1000:
-            source_nodes[(y, x)].append((oy, ox))
-            return False
-        elif existing_dist < new_dist:
-            return False
-        elif existing_dist > new_dist:
-            source_nodes[(y, x)] = [(oy, ox)]
-    else:
-        distances[(y, x)] = new_dist
-        source_nodes[(y, x)] = [(oy, ox)]
-    return data[y][x] != '#'  # Not a wall
 
-q = queue()
-q.append((pos[0], pos[1], 1, 0))  # (y, x, direction, distance)
-distances[(pos[0], pos[1])] = 0
 shortest_path_length = float('inf')
-while (len(q) > 0):
-    y, x, dir, dist = q.popleft()
+paths = []
+def dfs(y, x, dir, distance, path):
+    global shortest_path_length
+    path.append((y, x))
+    if len(path) > 1000:
+        return
+    if distance > shortest_path_length:
+        return
     if data[y][x] == 'E':
-        shortest_path_length = min(shortest_path_length, dist)
-        continue
-
+        shortest_path_length = min(shortest_path_length, distance)
+        paths.append((distance, path[:]))
     for dy, dx, new_dir in [(-1, 0, 0), (1, 0, 2), (0, 1, 1), (0, -1, 3)]:  # (dy, dx, direction)
         ny, nx = y + dy, x + dx
-        turn_penalty = min(abs(dir - new_dir), 4 - abs(dir - new_dir)) * 1000
-        new_dist = dist + 1 + turn_penalty
+        if data[ny][nx] == '#' or (ny, nx) in path:
+            continue
+        turn_penalty = 1000 if new_dir != dir else 0
+        new_dist = distance + 1 + turn_penalty
+        dfs(ny, nx, new_dir, new_dist, path[:])
 
-        if is_valid(ny, nx, new_dist, y, x):
-            distances[(ny, nx, dir)] = new_dist
-            q.append((ny, nx, new_dir, new_dist))
-
+dfs(start_pos[0], start_pos[1], 1, 0, []) # y, x, dir, distance, path
 
 res = set()
-res.add(end_pos)
-q2 = queue()
-q2.append(end_pos)
-while q2:
-    origin = q2.popleft()
-    if origin == pos:
-        res.add(origin)  # Always add the start position once it's reached
-    for source in source_nodes[origin]:
-        if source not in res:  # Avoid adding already processed nodes
-            res.add(source)
-            q2.append(source)
+for distance, path in paths:
+    # print(distance)
+    if distance == shortest_path_length:
+        for node in path:
+            res.add(node)
 
-for y, x in res:
-    data[y][x] = 'O'
-for line in data:
-    print("".join(line))
-
-    
-print(f"shortest path: {shortest_path_length}")
 print(len(res))
+print(f"shortest path: {shortest_path_length}")
 end_time = time.time()
 print(f'Time took: {round((end_time - start_time) * 1000, 2)}ms')
+
+
+# for y, x in res:
+#     data[y][x] = 'O'
+# for line in data:
+#     print("".join(line))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# def is_valid(y, x, dir, new_dist, oy, ox):
+#     if (y, x) in distances:
+#         existing_dist, old_dir = distances[(y, x)]
+#         if abs(existing_dist - new_dist) == 1000: # and (y, x) != end_pos and dir != old_dir
+#             source_nodes[(y, x)].append((oy, ox))
+#             return False
+#         elif existing_dist < new_dist:
+#             return False
+#         elif existing_dist > new_dist:
+#             source_nodes[(y, x)] = [(oy, ox)]
+#     else:
+#         distances[(y, x)] = (new_dist, dir)
+#         source_nodes[(y, x)] = [(oy, ox)]
+#     return data[y][x] != '#'  # Not a wall
+
+# q = queue()
+# q.append((pos[0], pos[1], 1, 0))  # (y, x, direction, distance)
+# distances[(pos[0], pos[1])] = (0, 1)
+# shortest_path_length = float('inf')
+# while (len(q) > 0):
+#     y, x, dir, dist = q.popleft()
+#     if data[y][x] == 'E':
+#         shortest_path_length = min(shortest_path_length, dist)
+#         continue
+
+#     for dy, dx, new_dir in [(-1, 0, 0), (1, 0, 2), (0, 1, 1), (0, -1, 3)]:  # (dy, dx, direction)
+#         ny, nx = y + dy, x + dx
+#         turn_penalty = min(abs(dir - new_dir), 4 - abs(dir - new_dir)) * 1000
+#         new_dist = dist + 1 + turn_penalty
+
+#         if is_valid(ny, nx, dir, new_dist, y, x):
+#             distances[(ny, nx)] = (new_dist, dir)
+#             q.append((ny, nx, new_dir, new_dist))
+
+# res = set()
+# res.add(end_pos)
+# q2 = queue()
+# q2.append(end_pos)
+# while q2:
+#     origin = q2.popleft()
+#     if origin == pos:
+#         res.add(origin)  # Always add the start position once it's reached
+#     for source in source_nodes[origin]:
+#         if source not in res:  # Avoid adding already processed nodes
+#             res.add(source)
+#             q2.append(source)
+
+# for y, x in res:
+#     data[y][x] = 'O'
+# for line in data:
+#     print("".join(line))
+
+# print(distances)
