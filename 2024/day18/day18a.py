@@ -2,7 +2,7 @@ import re
 import time
 import heapq
 start_time = time.time()
-with open('data', 'r') as file: # day_18_input.txt
+with open('day_18_input.txt', 'r') as file: # day_18_input.txt
     data = file.read().strip().splitlines()
 
 grid = []
@@ -20,14 +20,6 @@ for x, y in blocks:
     grid[y][x] = '#'
     i+=1
 
-
-"""
-Finds the shortest path in a 2D grid using Dijkstra's algorithm.
-:param grid: 2D list representing the grid. , for open cells, # for blocked cells.
-:param start: Tuple (x, y) for the start position.
-:param end: Tuple (x, y) for the end position.
-:return: The shortest distance to the end, or -1 if no path exists.
-"""
 shortest_path = float('inf')
 start = (0, 0)
 end = (max_l - 1, max_l - 1)
@@ -40,13 +32,10 @@ distances = {(start[0], start[1]): 0}
 
 while pq:
     current_dist, x, y = heapq.heappop(pq)
-
-    # If we reach the end, return the distance
     if (x, y) == end:
         shortest_path = current_dist
         break 
 
-    # Check all possible directions
     for dx, dy in directions:
         nx, ny = x + dx, y + dy
 
