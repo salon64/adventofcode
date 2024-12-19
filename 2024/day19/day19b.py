@@ -1,10 +1,6 @@
-from collections import defaultdict
-import itertools
-import re
 import time
-import heapq
 start_time = time.time()
-with open('fulldata', 'r') as file: # day_18_input.txt
+with open('2024/day19/day_19_input.txt', 'r') as file: 
     data = file.read().strip().splitlines()
 
 available = []
@@ -30,24 +26,12 @@ def seal(s) -> int:
                 if s.startswith(pos):
                     result += seal(s[len(pos):])
             cache[s] = result
-    
     return cache[s]
 
-
-## p1
-# res = 0
-# for _, char in enumerate(want):
-#     tmp = seal(char)
-#     # print(f"char: {char}: {tmp}")
-#     if tmp > 0:
-#         res += 1
-
-# p2
 res = 0
 for _, char in enumerate(want):
     res += seal(char)
 
-print()
 print(f"result: {res}")
 end_time = time.time()
 print(f'Time took: {round((end_time - start_time) * 1000, 2)}ms')
