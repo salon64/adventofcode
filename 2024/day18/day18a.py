@@ -2,7 +2,7 @@ import re
 import time
 import heapq
 start_time = time.time()
-with open('day_18_input.txt', 'r') as file: # day_18_input.txt
+with open('2024/day18/day_18_input.txt', 'r') as file: # day_18_input.txt
     data = file.read().strip().splitlines()
 
 grid = []
