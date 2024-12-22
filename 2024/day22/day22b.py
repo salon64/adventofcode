@@ -5,7 +5,7 @@ import re
 import time
 import heapq
 start_time = time.time()
-with open('fulldata', 'r') as file: # day_22_input.txt
+with open('2024/day22/day_22_input.txt', 'r') as file: # day_22_input.txt
     data = file.read().strip().splitlines()
 
 secret_numbers = [int(line) for line in data]
