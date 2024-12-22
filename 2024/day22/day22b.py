@@ -1,15 +1,11 @@
 from collections import defaultdict
-import copy
-from itertools import permutations
-import re
 import time
-import heapq
+
 start_time = time.time()
-with open('2024/day22/day_22_input.txt', 'r') as file: # day_22_input.txt
+with open('fulldata', 'r') as file: # day_22_input.txt
     data = file.read().strip().splitlines()
 
 secret_numbers = [int(line) for line in data]
-# print(secret_numbers)
 
 best_price_sequences = set()
 for ind, number in enumerate(secret_numbers):
@@ -56,7 +52,6 @@ print(f"len: {len(best_price_sequences)}")
 sums = defaultdict(int)
 max_sum = 0
 for intsasd, sq in enumerate(best_price_sequences):
-    print(intsasd)
     for ind, number in enumerate(secret_numbers):
         i = 0
         on0 = 0
@@ -94,20 +89,9 @@ for intsasd, sq in enumerate(best_price_sequences):
                 if (pc0, pc1, pc2, pc3) == sq:
                     sums[(pc0, pc1, pc2, pc3)] += price
                     max_sum = max(max_sum, sums[(pc0, pc1, pc2, pc3)])
-                    break
-
-            
+                    break            
             i+=1
-
-
-
-# if (-2, 1, -1, 3) in best_price_sequences:
-#     print("okay")
-#     print(sums[(-2, 1, -1, 3)])
-
-
 
 print(max_sum)
 end_time = time.time()
 print(f'Time took: {round((end_time - start_time) * 1000, 2)}ms')
-
