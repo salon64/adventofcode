@@ -12,30 +12,40 @@ print(codes)
 
 # ta reda på alla avstånden mellan knapparna
 
+#   terminal             r1               r2                    user
+# +---+---+---+  #     +---+---+  #     +---+---+              +---+---+
+# | 7 | 8 | 9 |  #     | ^ | A |  #     | ^ | A |              | ^ | A |
+# +---+---+---+  # +---+---+---+  # +---+---+---+   user:  +---+---+---+
+# | 4 | 5 | 6 |  # | < | v | > |  # | < | v | > |          | < | v | > | 
+# +---+---+---+  # +---+---+---+  # +---+---+---+          +---+---+---+
+# | 1 | 2 | 3 |
+# +---+---+---+
+#     | 0 | A |
+#     +---+---+
 
 numeric = {
     '7': (0, 0), '8': (0, 1), '9': (0, 2),
     '4': (1, 0), '5': (1, 1), '6': (1, 2),
     '1': (2, 0), '2': (2, 1), '3': (2, 2),
-    '0': (3, 1), 'A': (3, 2),
+    '' : (3, 0), '0': (3, 1), 'A': (3, 2),
 }
 directional = {
-    '^': (0, 0), 'A': (0, 1),
+    '' : (0, 0), '^': (0, 1), 'A': (0, 2),
     '<': (1, 0), 'v': (1, 1), '>': (1, 2),
 }
-# def calculate_distances(layout):
-#     distances = {}
-#     keys = list(layout.keys())
-#     for i, key1 in enumerate(keys):
-#         for j, key2 in enumerate(keys):
-#             if key1 != key2:  # Skip self-comparison
-#                 y1, x1 = layout[key1]
-#                 y2, x2 = layout[key2]
-#                 y_dist = abs(y1 - y2)
-#                 x_dist = abs(x1 - x2)
-#                 manhattan_dist = y_dist + x_dist
-#                 distances[(key1, key2)] = manhattan_dist
-#     return copy.deepcopy(distances)
+def calculate_distances(layout):
+    distances = {}
+    keys = list(layout.keys())
+    for i, key1 in enumerate(keys):
+        for j, key2 in enumerate(keys):
+            if key1 != key2:  # Skip self-comparison
+                y1, x1 = layout[key1]
+                y2, x2 = layout[key2]
+                y_dist = abs(y1 - y2)
+                x_dist = abs(x1 - x2)
+                manhattan_dist = y_dist + x_dist
+                distances[(key1, key2)] = manhattan_dist
+    return distances
 
 def calculate_offset(layout):
     distances = {}
@@ -45,10 +55,18 @@ def calculate_offset(layout):
             if key1 != key2:  # Skip self-comparison
                 y1, x1 = layout[key1]
                 y2, x2 = layout[key2]
-                tmp = ((y1-y2), (x1-x2))
-                print(f"{key1} -> {key2}: tmp = {tmp}, type = {type(tmp)}")
+                tmp = ((y2-y1), (x2-x1))
+                # print(f"{key1} -> {key2}: tmp = {tmp}, type = {type(tmp)}")
                 distances[(key1, key2)] = tmp
-    return copy.deepcopy(distances)
+    return distances
+
+
+
+numeric_distances = calculate_distances(numeric)
+directional_distances = calculate_distances(directional)
+numeric_offsets = calculate_offset(numeric)
+directional_offsets = calculate_offset(directional)
+# print(numeric_offsets[('2', '9')])
 
 
 def calculate_all_shortest_paths(distances, nodes):
@@ -75,53 +93,168 @@ def calculate_all_shortest_paths(distances, nodes):
                         shortest_path = path
 
                 # Store just the visiting order (excluding start node) for this combination
-                shortest_paths[(start_node, target1, target2)] = shortest_path[1:]  # Exclude the start node
+                shortest_paths[(start_node, target1, target2)] = shortest_path[:]  # Exclude the start node
     return shortest_paths
 
 
-# numeric_distances = calculate_distances(numeric)
-# directional_distances = calculate_distances(directional)
-# combined_layout = {**numeric_distances, **directional_distances}
+combined_layout = {**numeric_distances, **directional_distances}
+combined_offset = {**numeric_offsets, **directional_offsets}
 
-numeric_offset = calculate_offset(numeric)
-directional_offset = calculate_offset(directional)
-combined_offset = {**numeric_offset, **directional_offset}
+# print("--")
+# print(combined_offset[('2', '9')])
+# print(combined_layout[('2', '9')])
 
-# shortest_paths = calculate_all_shortest_paths(directional_distances, directional.keys())
+shortest_paths = calculate_all_shortest_paths(directional_distances, directional.keys())
 
-# +---+---+---+  #     +---+---+  #     +---+---+
-# | 7 | 8 | 9 |  #     | ^ | A |  #     | ^ | A |
-# +---+---+---+  # +---+---+---+  # +---+---+---+   user
-# | 4 | 5 | 6 |  # | < | v | > |  # | < | v | > |   
-# +---+---+---+  # +---+---+---+  # +---+---+---+
+#   terminal             r1               r2                    user
+# +---+---+---+  #     +---+---+  #     +---+---+              +---+---+
+# | 7 | 8 | 9 |  #     | ^ | A |  #     | ^ | A |              | ^ | A |
+# +---+---+---+  # +---+---+---+  # +---+---+---+   user:  +---+---+---+
+# | 4 | 5 | 6 |  # | < | v | > |  # | < | v | > |          | < | v | > | 
+# +---+---+---+  # +---+---+---+  # +---+---+---+          +---+---+---+
 # | 1 | 2 | 3 |
 # +---+---+---+
 #     | 0 | A |
 #     +---+---+
 
-print(numeric_offset)
-print(numeric_offset.get('A', '2'))
+# def get_order(origin, up, down, left, right):
+#     # since both up-right and right-up have the same order we only have to check one
+#     if up and right:
+#         return shortest_paths[origin, '^', '>']
+#     if up and left:
+#         return shortest_paths[origin, '^', '<']
+#     if down and right:
+#         return shortest_paths[origin, 'v', '>']
+#     if down and left:
+#         return shortest_paths[origin, 'v', '<']
+#     return ('-1', '-1', '-1') # if only one or 0 paths is ok
+def get_order(origin, up, down, right, left):
+    if up and right:
+        key = (origin, '^', '>')
+    elif up and left:
+        key = (origin, '^', '<')
+    elif down and right:
+        key = (origin, 'v', '>')
+    elif down and left:
+        key = (origin, 'v', '<')
+    else:
+        return ('-1', '-1', '-1')  # No valid paths
+
+    if key in shortest_paths:
+        return shortest_paths[key]
+    else:
+        print(f"Key {key} missing in shortest_paths.")
+        return ('-1', '-1', '-1')
 
 positions = ['A', 'A', 'A']
 def solve(start, end, depth):
-    if depth == 3:
-        return combined_layout.get(start, end)
-    elif depth == 0:
-        # find closest button from cur button, press it, move to next closest one then press that
-        solve()
+    val = 0
+    def press():
+        # distance between this_robots_pos and A 
+        tmp =  solve(positions[depth], 'A', depth+1)
+        positions[depth] = 'A'
+        return tmp
+        
+
+    if depth == len(positions):
+        # distancen mellan tidigare loops positioner + 1
+        print(combined_layout[(start, end)] + 1, end="")
+        print(f":{start} -> {end}")
+        return (combined_layout[(start, end)] + 1) # move to pos and press it
+        
+    elif depth == len(positions)-1:
+        off = combined_offset[start, end]
+        print(f"depth: {depth}, {start} -> {end}, off: {off}", end="")
+        y, x = off
+        up = True if y < 0 else False
+        down = True if y > 0 else False
+        right = True if x > 0 else False
+        left = True if x < 0 else False 
+        print(f"  up:{up}, down:{down}, right:{right}, left:{left}")
+        order = get_order(start, up, down, right, left) 
+
+        if order[0] == '-1': # only one direction is ok 
+            if up:
+                val += solve(positions[depth], '^', depth+1)
+                positions[depth] = '^'
+                # val += press()
+            elif down:
+                val += solve(positions[depth], 'v', depth+1)
+                positions[depth] = 'v'
+                # val += press()
+            elif right:
+                val += solve(positions[depth], '>', depth+1)
+                positions[depth] = '>'
+                # val += press()
+            elif left:
+                val += solve(positions[depth], '<', depth+1)
+                positions[depth] = '<'
+                # val += press()
+        else:
+            # print("dubble")
+            val += solve(positions[depth], order[1], depth+1)
+            positions[depth] = order[1]
+            # val += press()
+            val += solve(positions[depth], order[2], depth+1)
+            positions[depth] = order[2]
+            # val += press()
+
+        #return val
+
+    else:
+        off = combined_offset[start, end]
+        print(f"depth: {depth}, {start} -> {end}, off: {off}", end="")
+        y, x = off
+        up = True if y < 0 else False
+        down = True if y > 0 else False
+        right = True if x > 0 else False
+        left = True if x < 0 else False 
+        print(f"  up:{up}, down:{down}, right:{right}, left:{left}")
+        order = get_order(start, up, down, right, left) 
+
+        if order[0] == '-1': # only one direction is ok 
+            if up:
+                val += solve(positions[depth], '^', depth+1)
+                positions[depth] = '^'
+                val += press()
+            elif down:
+                val += solve(positions[depth], 'v', depth+1)
+                positions[depth] = 'v'
+                val += press()
+            elif right:
+                val += solve(positions[depth], '>', depth+1)
+                positions[depth] = '>'
+                val += press()
+            elif left:
+                val += solve(positions[depth], '<', depth+1)
+                positions[depth] = '<'
+                val += press()
+        else:
+            # print("dubble")
+            val += solve(positions[depth], order[1], depth+1)
+            positions[depth] = order[1]
+            val += press()
+
+            val += solve(positions[depth], order[2], depth+1)
+            positions[depth] = order[2]
+            val += press()
+
+    return val
+        
+# for key, value in shortest_paths.items():
+#     print(f"From {key[0]} visiting {key[1]} and {key[2]}: Visiting order = {value}")
     
-# for code
+result = 0
+for code in codes:
+    tmp = 0
+    for char in code:
+        tmp += solve(positions[0], char, 0) # send in start and end 
+        pass
+    print(tmp)
+    tmp2 = int(str("".join(code)))
+    result += tmp * tmp2
 
-# result = 0
-# for code in codes:
-#     tmp = 0
-#     for char in code:
-#         tmp += solve(positions[0], char, 0)
-#     print(tmp)
-#     tmp2 = int(str("".join(code)))
-#     result += tmp * tmp2
-
-
+print(result)
 end_time = time.time()
 print(f'Time took: {round((end_time - start_time) * 1000, 2)}ms')
 
