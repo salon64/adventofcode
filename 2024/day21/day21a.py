@@ -9,6 +9,8 @@ with open('2024/day21/test', 'r') as file: # day_21_input.txt
 
 codes = [list(line) for line in data]
 print(codes)
+# expected moves fore 029A, len = 68
+print(len("<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A"))
 
 # ta reda på alla avstånden mellan knapparna
 
@@ -27,10 +29,10 @@ numeric = {
     '7': (0, 0), '8': (0, 1), '9': (0, 2),
     '4': (1, 0), '5': (1, 1), '6': (1, 2),
     '1': (2, 0), '2': (2, 1), '3': (2, 2),
-    '' : (3, 0), '0': (3, 1), 'A': (3, 2),
+    '0': (3, 1), 'A': (3, 2),
 }
 directional = {
-    '' : (0, 0), '^': (0, 1), 'A': (0, 2),
+    '^': (0, 1), 'A': (0, 2),
     '<': (1, 0), 'v': (1, 1), '>': (1, 2),
 }
 def calculate_distances(layout):
@@ -117,17 +119,6 @@ shortest_paths = calculate_all_shortest_paths(directional_distances, directional
 #     | 0 | A |
 #     +---+---+
 
-# def get_order(origin, up, down, left, right):
-#     # since both up-right and right-up have the same order we only have to check one
-#     if up and right:
-#         return shortest_paths[origin, '^', '>']
-#     if up and left:
-#         return shortest_paths[origin, '^', '<']
-#     if down and right:
-#         return shortest_paths[origin, 'v', '>']
-#     if down and left:
-#         return shortest_paths[origin, 'v', '<']
-#     return ('-1', '-1', '-1') # if only one or 0 paths is ok
 def get_order(origin, up, down, right, left):
     if up and right:
         key = (origin, '^', '>')
@@ -159,8 +150,10 @@ def solve(start, end, depth):
     if depth == len(positions):
         # distancen mellan tidigare loops positioner + 1
         print(combined_layout[(start, end)] + 1, end="")
-        print(f":{start} -> {end}")
+        print(f": {start} -> {end}")
         return (combined_layout[(start, end)] + 1) # move to pos and press it
+    elif start == end:
+        val += solve(positions[depth], 'A', depth+1)
         
     elif depth == len(positions)-1:
         off = combined_offset[start, end]
@@ -177,30 +170,20 @@ def solve(start, end, depth):
             if up:
                 val += solve(positions[depth], '^', depth+1)
                 positions[depth] = '^'
-                # val += press()
             elif down:
                 val += solve(positions[depth], 'v', depth+1)
                 positions[depth] = 'v'
-                # val += press()
             elif right:
                 val += solve(positions[depth], '>', depth+1)
                 positions[depth] = '>'
-                # val += press()
             elif left:
                 val += solve(positions[depth], '<', depth+1)
                 positions[depth] = '<'
-                # val += press()
         else:
-            # print("dubble")
             val += solve(positions[depth], order[1], depth+1)
             positions[depth] = order[1]
-            # val += press()
             val += solve(positions[depth], order[2], depth+1)
             positions[depth] = order[2]
-            # val += press()
-
-        #return val
-
     else:
         off = combined_offset[start, end]
         print(f"depth: {depth}, {start} -> {end}, off: {off}", end="")
@@ -241,17 +224,18 @@ def solve(start, end, depth):
 
     return val
         
-# for key, value in shortest_paths.items():
-#     print(f"From {key[0]} visiting {key[1]} and {key[2]}: Visiting order = {value}")
-    
+
 result = 0
 for code in codes:
     tmp = 0
     for char in code:
+        print(f"char: {char} -----------------------------------------------------------------------------------")
         tmp += solve(positions[0], char, 0) # send in start and end 
         pass
     print(tmp)
-    tmp2 = int(str("".join(code)))
+    comb = ''.join(code)
+    tmp2 = int(re.search(r'\d+', comb).group())
+    print(tmp2)
     result += tmp * tmp2
 
 print(result)
