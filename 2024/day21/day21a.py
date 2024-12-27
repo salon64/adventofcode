@@ -1,18 +1,14 @@
-import copy
-from itertools import permutations
-import re
+from collections import defaultdict
 import time
-import heapq
+import networkx as nx
+from functools import cache
+import re
 start_time = time.time()
-with open('2024/day21/test', 'r') as file: # day_21_input.txt
+with open('2024/day21/day_21_input.txt', 'r') as file: # day_21_input.txt
     data = file.read().strip().splitlines()
-
-codes = [list(line) for line in data]
-print(codes)
+# print(codes)
 # expected moves fore 029A, len = 68
-print(len("<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A"))
-
-# ta reda på alla avstånden mellan knapparna
+# print(len("<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A"))
 
 #   terminal             r1               r2                    user
 # +---+---+---+  #     +---+---+  #     +---+---+              +---+---+
@@ -25,220 +21,174 @@ print(len("<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A"
 #     | 0 | A |
 #     +---+---+
 
-numeric = {
-    '7': (0, 0), '8': (0, 1), '9': (0, 2),
-    '4': (1, 0), '5': (1, 1), '6': (1, 2),
-    '1': (2, 0), '2': (2, 1), '3': (2, 2),
-    '0': (3, 1), 'A': (3, 2),
+numeric = nx.DiGraph()
+numeric.add_edges_from([("A", "0"), ("A", "3")])
+numeric.add_edges_from([("0", "2"), ("0", "A")])
+numeric.add_edges_from([("1", "4"), ("1", "2")])
+numeric.add_edges_from([("2", "1"), ("2", "5"), ("2", "3"), ("2", "0")])
+numeric.add_edges_from([("3", "2"), ("3", "6"), ("3", "A")])
+numeric.add_edges_from([("4", "7"), ("4", "5"), ("4", "1")])
+numeric.add_edges_from([("5", "4"), ("5", "8"), ("5", "6"), ("5", "2")])
+numeric.add_edges_from([("6", "5"), ("6", "9"), ("6", "3")])
+numeric.add_edges_from([("7", "8"), ("7", "4")])
+numeric.add_edges_from([("8", "7"), ("8", "5"), ("8", "9")])
+numeric.add_edges_from([("9", "8"), ("9", "6")])
+
+numeric_move = {
+    ('A', '0'): '<', ('A', '3'): '^',
+    ('0', '2'): '^', ('0', 'A'): '>',
+    ('1', '4'): '^', ('1', '2'): '>', 
+    ('2', '1'): '<', ('2', '5'): '^', ('2', '3'): '>', ('2', '0'): 'v',
+    ('3', '2'): '<', ('3', '6'): '^', ('3', 'A'): 'v', 
+    ('4', '7'): '^', ('4', '5'): '>', ('4', '1'): 'v', 
+    ('5', '4'): '<', ('5', '8'): '^', ('5', '6'): '>', ('5', '2'): 'v', 
+    ('6', '5'): '<', ('6', '9'): '^', ('6', '3'): 'v',
+    ('7', '8'): '>', ('7', '4'): 'v', 
+    ('8', '7'): '<', ('8', '5'): 'v', ('8', '9'): '>', 
+    ('9', '8'): '<', ('9', '6'): 'v'
 }
-directional = {
-    '^': (0, 1), 'A': (0, 2),
-    '<': (1, 0), 'v': (1, 1), '>': (1, 2),
+
+directional = nx.DiGraph()
+directional.add_edges_from([("A", "^"), ("A", ">")])
+directional.add_edges_from([("^", "A"), ("^", "v")])
+directional.add_edges_from([("<", "v")])
+directional.add_edges_from([("v", "<"), ("v", "^"), ("v", ">")])
+directional.add_edges_from([(">", "v"), (">", "A")])
+
+directional_move = {
+    ('A', '^'): "<", ('A', '>'): "v",
+    ('^', 'A'): ">", ('^', 'v'): "v",
+    ('<', 'v'): ">",
+    ('v', '<'): "<", ('v', '^'): "^", ('v', '>'): ">",
+    ('>', 'v'): "<", ('>', 'A'): "^",
 }
-def calculate_distances(layout):
-    distances = {}
-    keys = list(layout.keys())
-    for i, key1 in enumerate(keys):
-        for j, key2 in enumerate(keys):
-            if key1 != key2:  # Skip self-comparison
-                y1, x1 = layout[key1]
-                y2, x2 = layout[key2]
-                y_dist = abs(y1 - y2)
-                x_dist = abs(x1 - x2)
-                manhattan_dist = y_dist + x_dist
-                distances[(key1, key2)] = manhattan_dist
-    return distances
 
-def calculate_offset(layout):
-    distances = {}
-    keys = list(layout.keys())
-    for i, key1 in enumerate(keys):
-        for j, key2 in enumerate(keys):
-            if key1 != key2:  # Skip self-comparison
-                y1, x1 = layout[key1]
-                y2, x2 = layout[key2]
-                tmp = ((y2-y1), (x2-x1))
-                # print(f"{key1} -> {key2}: tmp = {tmp}, type = {type(tmp)}")
-                distances[(key1, key2)] = tmp
-    return distances
+def paths_numeric(A,B):
+    paths = []
+    for p in nx.all_shortest_paths(numeric,A,B):
+        seq = []
+        for i in range(len(p)-1):
+            move = (p[i],p[i+1])
+            seq += [ numeric_move[move] ]
+        seq += ['A'] # press A
+        paths.append("".join(seq))
+    return paths
 
+def solve_numeric(code):
+    paths = []
+    _code = "A"+code
+    for i in range(len(_code)-1):
+        paths.append(paths_numeric(_code[i],_code[i+1]))
+    sequences = [""]
+    i = 0
+    while i<len(paths):
+        sequences_new = []
+        for s in sequences:
+            for p in paths[i]:
+                sequences_new.append(s+p)
+        sequences = sequences_new
+        i+=1
+    return sequences
+# code = "029A"
+# print(solve_numeric(code))
 
+def paths_directional(A,B):
+    paths = []
+    for p in nx.all_shortest_paths(directional,A,B):
+        seq = []
+        for i in range(len(p)-1):
+            move = (p[i],p[i+1])
+            seq += [ directional_move[move] ]
+        seq += ['A'] # press A
+        paths.append("".join(seq))
+    return paths
 
-numeric_distances = calculate_distances(numeric)
-directional_distances = calculate_distances(directional)
-numeric_offsets = calculate_offset(numeric)
-directional_offsets = calculate_offset(directional)
-# print(numeric_offsets[('2', '9')])
-
-
-def calculate_all_shortest_paths(distances, nodes):
-    shortest_paths = {}
-    for start_node in nodes:
-        for target1, target2 in permutations(nodes, 2):  # All pairs of target nodes
-            if target1 != start_node and target2 != start_node:
-                # Generate both possible visiting orders
-                paths = [
-                    (start_node, target1, target2),  # Start -> Target1 -> Target2
-                    (start_node, target2, target1),  # Start -> Target2 -> Target1
-                ]
-                
-                # Calculate the total distance for each path
-                shortest_path = None
-                shortest_distance = float('inf')
-                for path in paths:
-                    total_distance = (
-                        distances[(path[0], path[1])] +  # Start -> Target1/Target2
-                        distances[(path[1], path[2])]   # Target1/Target2 -> Target2/Target1
-                    )
-                    if total_distance < shortest_distance:
-                        shortest_distance = total_distance
-                        shortest_path = path
-
-                # Store just the visiting order (excluding start node) for this combination
-                shortest_paths[(start_node, target1, target2)] = shortest_path[:]  # Exclude the start node
-    return shortest_paths
+def solve_directional(code):
+    paths = []
+    _code = "A"+code
+    for i in range(len(_code)-1):
+        paths.append(paths_directional(_code[i],_code[i+1]))
+    sequences = [""]
+    i = 0
+    while i<len(paths):
+        sequences_new = []
+        for s in sequences:
+            for p in paths[i]:
+                sequences_new.append(s+p)
+        sequences = sequences_new
+        i+=1
+    return sequences
+# code = "<A^A>^^AvvvA"
+# print(solve_directional(code))
 
 
-combined_layout = {**numeric_distances, **directional_distances}
-combined_offset = {**numeric_offsets, **directional_offsets}
 
-# print("--")
-# print(combined_offset[('2', '9')])
-# print(combined_layout[('2', '9')])
+# original solution:
+# def solve_code(code):
+#     solutions = []
+#     for key1 in solve_numeric(code):
+#         for key2 in solve_directional(key1):
+#             for key3 in solve_directional(key2):
+#                 solutions.append(key3)
+#     return min(solutions,key=len)
+# solve_code_("029A")
+# result = 0
+# for code in data:
+#     tmp = int(re.search(r'\d+', code).group())
+#     tmp2 = solve_code(code)
+#     result += len(tmp2) * tmp
+#     # print(code, solve_code(code))
+#     # print(f"{len(tmp2)} * {tmp}")
+# print(result)
 
-shortest_paths = calculate_all_shortest_paths(directional_distances, directional.keys())
+def find_shortest_paths(G,Gmove):
+    paths = defaultdict(list)
+    for start in G.nodes():
+        for end in G.nodes():
+            if start != end:
+                for p in list(nx.all_shortest_paths(G, start, end)):
+                    m = "".join([ Gmove[(p[i],p[i+1])] for i in range(len(p)-1) ])
+                    paths[ start+end ].append(m)
+    return paths
+numerc_paths = find_shortest_paths(numeric, numeric_move)
+directional_paths = find_shortest_paths(directional,directional_move)
 
-#   terminal             r1               r2                    user
-# +---+---+---+  #     +---+---+  #     +---+---+              +---+---+
-# | 7 | 8 | 9 |  #     | ^ | A |  #     | ^ | A |              | ^ | A |
-# +---+---+---+  # +---+---+---+  # +---+---+---+   user:  +---+---+---+
-# | 4 | 5 | 6 |  # | < | v | > |  # | < | v | > |          | < | v | > | 
-# +---+---+---+  # +---+---+---+  # +---+---+---+          +---+---+---+
-# | 1 | 2 | 3 |
-# +---+---+---+
-#     | 0 | A |
-#     +---+---+
+@cache
+def minimum_sequence(level, code, nrobots):
+    # end of keypad sequence reached, return lenght of current sequence 
+    if level == nrobots + 1:
+        return len(code)
 
-def get_order(origin, up, down, right, left):
-    if up and right:
-        key = (origin, '^', '>')
-    elif up and left:
-        key = (origin, '^', '<')
-    elif down and right:
-        key = (origin, 'v', '>')
-    elif down and left:
-        key = (origin, 'v', '<')
+    # select dictionary of shortest paths according to level and corresponding keypad
+    if level==0:
+        paths = numerc_paths
     else:
-        return ('-1', '-1', '-1')  # No valid paths
+        paths = directional_paths
 
-    if key in shortest_paths:
-        return shortest_paths[key]
-    else:
-        print(f"Key {key} missing in shortest_paths.")
-        return ('-1', '-1', '-1')
-
-positions = ['A', 'A', 'A']
-def solve(start, end, depth):
-    val = 0
-    def press():
-        # distance between this_robots_pos and A 
-        tmp =  solve(positions[depth], 'A', depth+1)
-        positions[depth] = 'A'
-        return tmp
-        
-
-    if depth == len(positions):
-        # distancen mellan tidigare loops positioner + 1
-        print(combined_layout[(start, end)] + 1, end="")
-        print(f": {start} -> {end}")
-        return (combined_layout[(start, end)] + 1) # move to pos and press it
-    elif start == end:
-        val += solve(positions[depth], 'A', depth+1)
-        
-    elif depth == len(positions)-1:
-        off = combined_offset[start, end]
-        print(f"depth: {depth}, {start} -> {end}, off: {off}", end="")
-        y, x = off
-        up = True if y < 0 else False
-        down = True if y > 0 else False
-        right = True if x > 0 else False
-        left = True if x < 0 else False 
-        print(f"  up:{up}, down:{down}, right:{right}, left:{left}")
-        order = get_order(start, up, down, right, left) 
-
-        if order[0] == '-1': # only one direction is ok 
-            if up:
-                val += solve(positions[depth], '^', depth+1)
-                positions[depth] = '^'
-            elif down:
-                val += solve(positions[depth], 'v', depth+1)
-                positions[depth] = 'v'
-            elif right:
-                val += solve(positions[depth], '>', depth+1)
-                positions[depth] = '>'
-            elif left:
-                val += solve(positions[depth], '<', depth+1)
-                positions[depth] = '<'
+    # recursively cumulate sequence lenght, only considering shortest one
+    total = 0
+    for start, end in zip('A'+code, code):
+        # adding "A" command at end of current step to press the button!
+        min_seq = [ minimum_sequence(level+1, p+"A", nrobots) for p in paths[ start+end ] ]
+        if min_seq:
+            total += min(min_seq)
         else:
-            val += solve(positions[depth], order[1], depth+1)
-            positions[depth] = order[1]
-            val += solve(positions[depth], order[2], depth+1)
-            positions[depth] = order[2]
-    else:
-        off = combined_offset[start, end]
-        print(f"depth: {depth}, {start} -> {end}, off: {off}", end="")
-        y, x = off
-        up = True if y < 0 else False
-        down = True if y > 0 else False
-        right = True if x > 0 else False
-        left = True if x < 0 else False 
-        print(f"  up:{up}, down:{down}, right:{right}, left:{left}")
-        order = get_order(start, up, down, right, left) 
+            # When the same button is pressed twice in a row account for 1 step in sequence,
+            # since  min_seq would be empty (no entry in the shortest path dictionaries), but
+            # operation is happening anyway
+            total += 1 
 
-        if order[0] == '-1': # only one direction is ok 
-            if up:
-                val += solve(positions[depth], '^', depth+1)
-                positions[depth] = '^'
-                val += press()
-            elif down:
-                val += solve(positions[depth], 'v', depth+1)
-                positions[depth] = 'v'
-                val += press()
-            elif right:
-                val += solve(positions[depth], '>', depth+1)
-                positions[depth] = '>'
-                val += press()
-            elif left:
-                val += solve(positions[depth], '<', depth+1)
-                positions[depth] = '<'
-                val += press()
-        else:
-            # print("dubble")
-            val += solve(positions[depth], order[1], depth+1)
-            positions[depth] = order[1]
-            val += press()
-
-            val += solve(positions[depth], order[2], depth+1)
-            positions[depth] = order[2]
-            val += press()
-
-    return val
-        
+    return total
+# minimum_sequence(0, "029A", 2)
 
 result = 0
-for code in codes:
-    tmp = 0
-    for char in code:
-        print(f"char: {char} -----------------------------------------------------------------------------------")
-        tmp += solve(positions[0], char, 0) # send in start and end 
-        pass
-    print(tmp)
-    comb = ''.join(code)
-    tmp2 = int(re.search(r'\d+', comb).group())
-    print(tmp2)
-    result += tmp * tmp2
-
+for code in data:
+    tmp = int(re.search(r'\d+', code).group())
+    tmp2 = minimum_sequence(0, code, 2)
+    result += tmp2 * tmp
 print(result)
+
+
 end_time = time.time()
 print(f'Time took: {round((end_time - start_time) * 1000, 2)}ms')
 
