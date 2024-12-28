@@ -19,8 +19,8 @@ for i, line in enumerate(data):
 # print()
 
 
-for i in range(3500000, 1000000000):
-    if i % 100000 == 0:
+for i in range(500_000_000, 1000_000_000_000):
+    if i % 100_000_000 == 0:
         print(f"now at: {i}")
     registers = [i, 0, 0]
     outputs = []
