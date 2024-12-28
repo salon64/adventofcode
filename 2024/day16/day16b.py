@@ -1,72 +1,112 @@
-import sys
+from collections import defaultdict
 import time
-from collections import defaultdict, deque as queue
-sys.setrecursionlimit(100000) 
+import heapq
 start_time = time.time()
-with open('2024/day16/test', 'r') as file: # day_16_input.txt
+with open('2024/day16/day_16_input.txt', 'r') as file: # day_16_input.txt
     data = file.read().strip().splitlines()
-
-start_pos = (0, 0)
-data = [list(line) for line in data]
-for y, line in enumerate(data):
+grid = [list(row) for row in data]
+for y, line in enumerate(grid):
     for x, char in enumerate(line):
-        if char == 'S':  # Start position
-            start_pos = (y, x)
+        if char == 'S':
+            sy,sx = y, x
+        elif char == 'E':
+            ey,ex = y, x
 
+sd = 0
+dirs = [(0, 1), (-1, 0), (0, -1), (1, 0)]
+def adjs(cur):
+    cy, cx, cd  = cur
+    yield 1000, (cy, cx, (cd-1)%4)
+    yield 1000, (cy, cx, (cd+1)%4)
+    dy, dx = dirs[cd]
+    ny, nx = cy+dy, cx+dx
+    if grid[ny][nx] != '#':
+        yield 1, (ny, nx, cd)
 
-shortest_path_length = float('inf')
-paths = []
-def dfs(y, x, dir, distance, path):
-    global shortest_path_length
-    path.append((y, x))
-    if len(path) > 1000:
-        return
-    if distance > shortest_path_length:
-        return
-    if data[y][x] == 'E':
-        shortest_path_length = min(shortest_path_length, distance)
-        paths.append((distance, path[:]))
-    for dy, dx, new_dir in [(-1, 0, 0), (1, 0, 2), (0, 1, 1), (0, -1, 3)]:  # (dy, dx, direction)
-        ny, nx = y + dy, x + dx
-        if data[ny][nx] == '#' or (ny, nx) in path:
-            continue
-        turn_penalty = 1000 if new_dir != dir else 0
-        new_dist = distance + 1 + turn_penalty
-        dfs(ny, nx, new_dir, new_dist, path[:])
+start = (sy, sx, sd)
+pq = []
+p1 = None
+heapq.heappush(pq, (0, start))
+dists = defaultdict(lambda : float("inf"))
+from_ = defaultdict(lambda : set())
+while pq:
+    dist, cur = heapq.heappop(pq)
+    (cy, cx, cd) = cur
 
-dfs(start_pos[0], start_pos[1], 1, 0, []) # y, x, dir, distance, path
+    for d, adj in adjs(cur):
+        if d + dist < dists[adj]:
+            dists[adj] = d + dist
+            heapq.heappush(pq, (dists[adj], adj))
+            from_[adj] = {cur}
+        elif d + dist == dists[adj]:
+            from_[adj].add(cur)
 
-res = set()
-for distance, path in paths:
-    # print(distance)
-    if distance == shortest_path_length:
-        for node in path:
-            res.add(node)
+stack = [(ey, ex, 1)]
+gnodes = set(stack)
+while stack:
+    some = stack.pop(-1)
+    for other in from_[some]:
+        if other not in gnodes:
+            gnodes.add(other)
+            stack.append(other)
 
-print(len(res))
-print(f"shortest path: {shortest_path_length}")
+gnodes = set(x[:2] for x in gnodes)
+print(len(gnodes))
 end_time = time.time()
 print(f'Time took: {round((end_time - start_time) * 1000, 2)}ms')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# shortest_path_length = float('inf')
+# paths = []
+# def dfs(y, x, dir, distance, path):
+#     global shortest_path_length
+#     path.append((y, x))
+#     if len(path) > 1000:
+#         return
+#     if distance > shortest_path_length:
+#         return
+#     if data[y][x] == 'E':
+#         shortest_path_length = min(shortest_path_length, distance)
+#         paths.append((distance, path[:]))
+#     for dy, dx, new_dir in [(-1, 0, 0), (1, 0, 2), (0, 1, 1), (0, -1, 3)]:  # (dy, dx, direction)
+#         ny, nx = y + dy, x + dx
+#         if data[ny][nx] == '#' or (ny, nx) in path:
+#             continue
+#         turn_penalty = 1000 if new_dir != dir else 0
+#         new_dist = distance + 1 + turn_penalty
+#         dfs(ny, nx, new_dir, new_dist, path[:])
+
+# dfs(start_pos[0], start_pos[1], 1, 0, []) # y, x, dir, distance, path
+
+# res = set()
+# for distance, path in paths:
+#     # print(distance)
+#     if distance == shortest_path_length:
+#         for node in path:
+#             res.add(node)
+
+# print(len(res))
+# print(f"shortest path: {shortest_path_length}")
+# end_time = time.time()
+# print(f'Time took: {round((end_time - start_time) * 1000, 2)}ms')
 
 
 # for y, x in res:
 #     data[y][x] = 'O'
 # for line in data:
 #     print("".join(line))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 # def is_valid(y, x, dir, new_dist, oy, ox):
 #     if (y, x) in distances:
