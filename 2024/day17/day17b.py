@@ -1,94 +1,49 @@
 import time
-from collections import defaultdict, deque as queue
+from z3 import *
 start_time = time.time()
-with open('2024/day17/test', 'r') as file: # day_17_input.txt
-    data = file.read().strip().splitlines()
 
-registers = [0, 0, 0]
-instructions = []
-for i, line in enumerate(data):
-    if i < 3:
-        tmp = line.split()
-        registers[i] = int(tmp[-1])
-    elif i == 4:
-        tmp = line[8:]
-        tmp = tmp.split(",")
-        instructions = [int(instr) for instr in tmp]
-# print(registers)
-# print(instructions)
-# print()
+# 00 2,4: B <- A % 8
+# 02 1,2: B <- B ^ 2
+# 04 7,5: C <- A // (2^B)
+# 06 4,5: B <- B ^ C
+# 08 1,3: B <- B ^ 3
+# 10 5,5: output B % 8
+# 12 0,3: A <- A // 8
+# 14 3,0: reset (goto 00)
 
+# while A != 0 {
+#   B = A & 8
+#   B = B ^ 2
+#   C = A / (1 << B)
+#   B = B ^ C
+#   B = B ^ 3
+#   A = A / (1 << 3)
+#   OUT(B % 8)
+# }
 
-for i in range(500_000_000, 1000_000_000_000):
-    if i % 100_000_000 == 0:
-        print(f"now at: {i}")
-    registers = [i, 0, 0]
-    outputs = []
-    instr_pointer = 0
-    while instr_pointer in range(0, len(instructions)):
-        # A, B, C = registers[:]
-        opcode = instructions[instr_pointer]
-        operand = instructions[instr_pointer+1]
-        
-        def get_combo():
-            if operand >= 0 and operand <= 3:
-                return operand
-            elif operand == 4:
-                return registers[0]
-            elif operand == 5:
-                return registers[1]
-            elif operand == 6:
-                return registers[2]
-            elif operand == 7:
-                print("no combo 7")
-                return '-1'
-        
-        # print(f"opcode:{opcode}, operand:{operand}, combo:{combo}, A:{A}, B:{B}, C:{C}, instr_ptr:{instr_pointer}")
-        if opcode == 0: # adv, divition
-            registers[0] = registers[0] // (2**get_combo())
+code = [2,4,1,2,7,5,4,5,1,3,5,5,0,3,3,0]
+zs = z3.Solver()
+aStart = z3.BitVec('a', 64)
+a, b, c = aStart, 0, 0
+for i, d in enumerate(code):
+    b = a % 8           # bst 
+    b ^= 2              # bxl 
+    c = a >> b          # cdv 
+    b ^= c              # bxc 
+    b ^= 3              # bxl 
+    a = a >> 3          # adv 
+    zs.add(b % 8 == d)  # out 
+    if i != len(code) - 1:
+        zs.add(a != 0)  # jnz 
+    else:
+        zs.add(a == 0)
 
-        elif opcode == 1: # bxl, bitwise xor
-            registers[1] = registers[1] ^ operand # literal operand
-
-        elif opcode == 2: # bst, modulo 8
-            registers[1] = get_combo() % 8
-
-        elif opcode == 3: # jnz, 
-            if registers[0] == 0:
-                #do nothing
-                pass
-            else:
-                instr_pointer = operand # literal operand
-                continue # does not add 2 to the instr_pointer after performing instruction
-
-        elif opcode == 4: # bxc, bitwise XOR
-            registers[1] = registers[1] ^ registers[2]
-            # kanske ladda in en combo?
-
-        elif opcode == 5: # out, 
-            tmp = get_combo() % 8
-            outputs.append(tmp)
-            # print(tmp)
-
-        elif opcode == 6: # bdv
-            registers[1] = registers[0] // (2**get_combo())
-
-        elif opcode == 7: # cdv
-            registers[2] = registers[0] // (2**get_combo())
-
-        instr_pointer += 2
-    # print(",".join(outputs))
-    if instructions == outputs:
-        print("found it at:")
-        print(i)
-        print(instructions)
-        print(outputs)
-        break
-    # if i == 117440:
-    #     print(outputs)
-    #     print(instructions)
-    #     break
-
+if zs.check() == z3.sat:
+    model = zs.model()
+    a_solution = model[aStart]
+    print(f"{a_solution}")
+else:
+    print("No solution found.")
 
 end_time = time.time()
 print(f'Time took: {round((end_time - start_time) * 1000, 2)}ms')
