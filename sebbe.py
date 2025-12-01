@@ -30,15 +30,9 @@ with open(f"{folder_path}/{input_path}", "w") as file:
     file.write(todays_input)
 
 file_template = f"""import time
-
-
-start_time = time.time()
-
 with open('{folder_path}/{input_path}', 'r') as file:
     data = file.read().strip()
 
-end_time = time.time()
-print(f'Time took: {"{round((end_time - start_time) * 1000, 2)}"}ms')
 """
 
 if not os.path.exists(f"{folder_path}/{problem_path}a.py"):

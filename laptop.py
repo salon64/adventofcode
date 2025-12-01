@@ -1,53 +1,46 @@
-from collections import defaultdict
 import itertools
-import re
-import time
-import heapq
-start_time = time.time()
-with open('fulldata', 'r') as file: # day_18_input.txt
-    data = file.read().strip().splitlines()
 
-available = []
-want = []
-av = True
-for line in data:
-    if av:
-        available =line.split(", ")
-        av = False
-    else:
-        if line == '':
-            continue
-        want.append(line)
-    
-cache = {}
-def seal(s) -> int:
-    if s not in cache:
-        if len(s) == 0:
-            return 1
-        else:
-            result = 0
-            for pos in available:
-                if s.startswith(pos):
-                    result += seal(s[len(pos):])
-            cache[s] = result
-    
-    return cache[s]
+# Define the set of valid characters
+chars = 'abcdefghijklmnopqrstuvwxyz0123456789'
 
+# Define a function to check the conditions for the password
+def check_conditions(password):
+    # Ensure the password is exactly 16 characters
+    if len(password) != 16:
+        return False
 
-## p1
-# res = 0
-# for _, char in enumerate(want):
-#     tmp = seal(char)
-#     # print(f"char: {char}: {tmp}")
-#     if tmp > 0:
-#         res += 1
+    # Convert password to a list of integer values (byte values)
+    s = [ord(c) for c in password]
 
-# p2
-res = 0
-for _, char in enumerate(want):
-    res += seal(char)
+    # Check all the conditions
+    if not all(c in chars for c in password):
+        return False
+    if (s[5] - s[3]) < -4: return False
+    if (s[11] - s[0]) == -5: return False
+    if (s[4] ^ s[12]) == 2: return False
+    if (s[13] ^ s[1]) == 19: return False
+    if (s[10] | s[1]) == 126: return False
+    if (s[7] | s[4]) == 108: return False
+    if (s[15] ^ s[6]) == 16: return False
+    if (s[8] ^ s[9]) == 9: return False
+    if (s[2] + s[11]) == 226: return False
+    if (s[14] - s[3]) == -5: return False
+    if (s[8] | s[7]) == 125: return False
+    if (s[3] + s[11]) < 226: return False
+    if (s[5] ^ s[9]) == 8: return False
+    if (s[11] | s[10]) == 111: return False
+    if (s[1] ^ s[3]) == 2: return False
+    if (s[12] ^ s[2]) == 25: return False
+    if (s[9] ^ s[15]) == 26: return False
 
-print()
-print(f"result: {res}")
-end_time = time.time()
-print(f'Time took: {round((end_time - start_time) * 1000, 2)}ms')
+    return True
+
+# Brute-force over all possible 16-character passwords
+for password_tuple in itertools.product(chars, repeat=16):
+    password = ''.join(password_tuple)
+
+    if check_conditions(password):
+        print("Found valid password (flag):", password)
+        break
+else:
+    print("No valid password found.")

@@ -1,98 +1,67 @@
-from collections import defaultdict
-import time
+from z3 import *
 
-start_time = time.time()
-with open('fulldata', 'r') as file: # day_22_input.txt
-    data = file.read().strip().splitlines()
+A = Int('A')
+B = Int('B')
+C = Int('C')
+D = Int('D')
+E = Int('E')
+F = Int('F')
+G = Int('G')
+H = Int('H')
+I = Int('I')
+J = Int('J')
+K = Int('K')
+L = Int('L')
+M = Int('M')
+N = Int('N')
+O = Int('O')
+P = Int('P')
 
-secret_numbers = [int(line) for line in data]
+relations = [
+    [F, D, '-', '<', -1],
+    [L, A, '-', '==', -5],
+    [E, M, '^', '==', 2],
+    [N, B, '^', '==', 19],
+    [K, B, '|', '==', 126],
+    [H, E, '|', '==', 108],
+    [P, G, '^', '==', 16],
+    [I, J, '^', '==', 9],
+    [C, L, '+', '==', 226],
+    [O, D, '-', '==', -5],
+    [I, H, '|', '==', 128],
+    [D, L, '+', '<', 226],
+    [F, J, '^', '==', 8],
+    [L, K, '|', '==', 111],
+    [B, D, '^', '==', 2],
+    [M, C, '^', '==', 25],
+    [J, P, '^', '==', 26]
+]
 
-best_price_sequences = set()
-for ind, number in enumerate(secret_numbers):
-    i = 0
-    on0 = 0
-    on1 = 0
-    on2 = 0
-    on3 = 3
-    pc0 = pc1 = pc2 = pc3 = 0
-    max_price = 0
-    while i < 1999:
-        number64 = number * 64
-        number = number ^ number64 # mix
-        number = number % 16777216 # prune
+s = Solver()
 
-        number32 = number // 32
-        number = number ^ number32 # mix 
-        number = number % 16777216 # prune
+for rel in relations:
+    if rel[2] == "+":
+        if rel[3] == "==":
+            s.add
 
-        number2048 = number * 2048
-        number = number ^ number2048 # mix 
-        number = number % 16777216 # prune 
+    if rel[2] == "+":
+        if rel[3] == "==":
+            s.add(rel[0] + rel[1] == rel[4])
+        elif rel[3] == "<":
+            s.add(rel[0] + rel[1] < rel[4])
+    elif rel[2] == "-":
+        if rel[3] == "==":
+            s.add(rel[0] - rel[1] == rel[4])
+        elif rel[3] == "<":
+            s.add(rel[0] - rel[1] < rel[4])
+    elif rel[2] == "^":
+        if rel[3] == "==":
+            s.add(rel[0] ^ rel[1] == rel[4])
+    elif rel[2] == "|":
+        if rel[3] == "==":
+            s.add(rel[0] | rel[1] == rel[4])
 
-
-        price = number % 10 # last digit
-        pc0 = on1 - on0
-        pc1 = on2 - on1
-        pc2 = on3 - on2
-        pc3 = price - on3
-        # print(f"{number}: {pc3}")
-        on0 = on1
-        on1 = on2
-        on2 = on3
-        on3 = price
-
-        if i > 3:
-            if price >= max_price:
-                max_price = price
-                best_price_sequences.add((pc0, pc1, pc2, pc3))
-                # print((pc0, pc1, pc2, pc3))
-        i+=1
-
-print(f"len: {len(best_price_sequences)}")
-sums = defaultdict(int)
-max_sum = 0
-for intsasd, sq in enumerate(best_price_sequences):
-    # print(intsasd)
-    for ind, number in enumerate(secret_numbers):
-        i = 0
-        on0 = 0
-        on1 = 0
-        on2 = 0
-        on3 = 3
-        pc0 = pc1 = pc2 = pc3 = 0
-        max_price = 0
-        while i < 1999:
-            number64 = number * 64
-            number = number ^ number64 # mix
-            number = number % 16777216 # prune
-
-            number32 = number // 32
-            number = number ^ number32 # mix 
-            number = number % 16777216 # prune
-
-            number2048 = number * 2048
-            number = number ^ number2048 # mix 
-            number = number % 16777216 # prune 
-
-
-            price = number % 10 # last digit
-            pc0 = on1 - on0
-            pc1 = on2 - on1
-            pc2 = on3 - on2
-            pc3 = price - on3
-            # print(f"{number}: {pc3}")
-            on0 = on1
-            on1 = on2
-            on2 = on3
-            on3 = price
-
-            if i > 3:
-                if (pc0, pc1, pc2, pc3) == sq:
-                    sums[(pc0, pc1, pc2, pc3)] += price
-                    max_sum = max(max_sum, sums[(pc0, pc1, pc2, pc3)])
-                    break            
-            i+=1
-
-print(max_sum)
-end_time = time.time()
-print(f'Time took: {round((end_time - start_time) * 1000, 2)}ms')
+if s.check() == sat:
+    print(s.model())
+else:
+    print("No solution")
