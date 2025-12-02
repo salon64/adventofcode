@@ -29,7 +29,7 @@ if not os.path.exists(folder_path):
 with open(f"{folder_path}/{input_path}", "w") as file:
     file.write(todays_input)
 
-file_template = f"""import time
+file_template = f"""
 with open('{folder_path}/{input_path}', 'r') as file:
     data = file.read().strip()
 
